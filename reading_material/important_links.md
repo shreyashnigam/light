@@ -8,3 +8,6 @@ https://github.com/harvardnlp/boxscore-data
 
 ## Another NBA Example
 https://github.com/gau820827/AI-writer_Data2Doc
+
+## Transformer Implementation
+https://github.com/pbloem/former/blob/master/former/transformers.py
