@@ -1,5 +1,5 @@
-# LIGHT
+# TODOs
 
-Language for In Game Highlights 
-
-Generates natural language summaries from key metrics
+- [ ] Implement transformer
+- [ ] Implement code for measuring perplexity
+- [ ] Generate graphs for transformers with varying attention mechanisms
