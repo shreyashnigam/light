@@ -334,7 +334,6 @@ class PGenLayer(nn.Module):
         input = torch.cat((emb, hid, enc), 1)
         return F.sigmoid(self.lin(input))
 
-
 class AttnDecoderRNN(nn.Module):
     """This is a plain decoder with attention."""
     def __init__(self, hidden_size, output_size, n_layers=LAYER_DEPTH, 
