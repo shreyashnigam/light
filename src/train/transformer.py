@@ -1,10 +1,11 @@
 ''' This is the main file for the transformer.'''
-from typing import ForwardRef
 import torch
-from torch import nn
-import torch.nn.functional as F
-import random, math, sys
 import math
+import pickle
+from torch import nn
+from torch.nn import functional as F
+from typing import ForwardRef
+
 from torch.autograd import Variable
 
 # Simple Encoder-Decoder transformer with simple multi head self-attention
@@ -20,6 +21,20 @@ class Transformer(nn.Module):
         x_decoder = self.dencoder_block(x, x_encoder)
         x_output = self.output_layer(x_decoder)
         return x_output
+    
+    def inference(self, x, hidden_state=None, temperature=1):
+        x = x.view(-1, 1)
+        x, hidden_state = self.forward(x, hidden_state)
+        x = x.view(1, -1)
+        x = x / max(temperature, 1e-20)
+        x = F.softmax(x, dim=1)
+        return x, hidden_state
+
+    # Predefined loss function
+    def loss(self, prediction, label, reduction='mean'):
+        loss_val = F.cross_entropy(
+            prediction.view(-1, self.vocab_size), label.view(-1), reduction=reduction)
+        return loss_val
 
 
 class SimpleSelfAttention(nn.Module):
@@ -29,9 +44,9 @@ class SimpleSelfAttention(nn.Module):
 
         self.dim = dim
         self.heads = heads
-        self.mask = mask;
+        self.mask = mask
 
-        self.query = nn.Linear(self.dim self.dim, bias=False)
+        self.query = nn.Linear(self.dim, self.dim, bias=False)
         self.key = nn.Linear(self.dim, self.dim, bias=False)
         self.value = nn.Linear(self.dim, self.dim, bias=False)
         self.dropout = nn.Dropout(dropout_value)

@@ -341,6 +341,8 @@ def train(train_set, langs, embedding_size=EMBEDDING_SIZE, learning_rate=LR,
           max_length=MAX_LENGTH, max_sentence=MAX_SENTENCES,
           save_model=SAVE_MODEL, output_file=OUTPUT_FILE,
           iter_num=iterNum, pretrain=PRETRAIN):
+
+          
     """The training procedure."""
     # # Test arg parser (For Debugging)
     # print("embedding_size={}, learning_rate={}, batch_size={}, get_loss={}, grad_clip={},\
@@ -350,6 +352,8 @@ def train(train_set, langs, embedding_size=EMBEDDING_SIZE, learning_rate=LR,
     #         embedding_size, learning_rate, batch_size, get_loss, grad_clip,
     #         encoder_style, decoder_style, max_length, max_sentece, save_model, output_file,
     #         to_copy, epoch_time, layer_depth, iter_num, pretrain))
+
+
     # Set the timer
     start = time.time()
 
