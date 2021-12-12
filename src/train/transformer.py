@@ -40,7 +40,8 @@ class Transfromer(nn.Module):
 
 class SimpleSelfAttention(nn.Module):
 
-    def __init__(self):
+    def __init__(self, embedding_dim, heads, masks):
+        
         pass
     
     def forward():
