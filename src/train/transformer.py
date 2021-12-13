@@ -18,7 +18,7 @@ class Transformer(nn.Module):
 
     def forward(self, x):
         x_encoder = self.encoder_block(x)
-        x_decoder = self.dencoder_block(x, x_encoder)
+        x_decoder = self.decoder_block(x, x_encoder)
         x_output = self.output_layer(x_decoder)
         return x_output
     
@@ -68,7 +68,7 @@ class SimpleSelfAttention(nn.Module):
         return (result @ value)
 
     def forward(self, q, k, v, mask=None):
-        size = q.size(0);
+        size = q.size(0)
         d_k = self.dim//self.heads
 
         curr_key = self.key(k).view(size, -1, self.heads, d_k)
@@ -87,13 +87,51 @@ class SimpleSelfAttention(nn.Module):
         return self.output_layer(output)
 
 class WordEmbedder(nn.Module):
+    """The class for embedding records.
 
-    def __init__(self, vocab_size, hidden_dim):
-        super().__init__()
-        self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
+    This class is for embedding the docvec (r.t, r.e, r.m)
+    into a high dimension space. A MLP with RELU will be applied
+    on the concatenation of the embeddings.
 
-    def forward(self, x):
-        return self.embedding_layer(x)
+    Attributes:
+        embedding1: embedding for r.t
+        embedding2: embedding for r.e
+        embedding3: embedding for r.m
+        linear: A linear layer mapping [r.t, r.e, r.m] back to one space
+
+    """
+    # def __init__(self, vocab_size, hidden_dim):
+    #     super().__init__()
+    #     self.embedding_layer = nn.Embedding(vocab_size, hidden_dim)
+
+    # def forward(self, x):
+    #     return self.embedding_layer(x)
+    def __init__(self, rt_size, re_size, rm_size, embedding_dim):
+        super(WordEmbedder, self).__init__()
+        self.embedding1 = nn.Embedding(rt_size, embedding_dim)
+        self.embedding2 = nn.Embedding(re_size, embedding_dim)
+        self.embedding3 = nn.Embedding(rm_size, embedding_dim)
+        self.linear = nn.Linear(embedding_dim * 3, embedding_dim)
+
+    def forward(self, rt, re, rm):
+        emb_rt = self.embedding1(rt)
+        emb_re = self.embedding2(re)
+        emb_rm = self.embedding3(rm)
+
+        emb_all = torch.cat([emb_rt, emb_re, emb_rm], dim=len(rt.size()))
+        output = self.linear(emb_all)
+        return output
+
+    def init_weights(self):
+        initrange = 0.1
+        lin_layers = [self.linear]
+        em_layer = [self.embedding1, self.embedding2, self.embedding3]
+
+        for layer in lin_layers + em_layer:
+            layer.weight.data.uniform_(-initrange, initrange)
+            if layer in lin_layers:
+                layer.bias.data.fill_(0)
+
 
 # referenced the most commonly used positional encoder from the internet
 class PositionalEncoder(nn.Module):
@@ -141,9 +179,9 @@ class FeedForward(nn.Module):
 
 class Encoder(nn.Module):
 
-    def __init__(self, vocab_size, input_dims, heads, N = 1, mask = None, dropout_val = 0.1):
+    def __init__(self, emb, input_dims, heads, N = 1, mask = None, dropout_val = 0.1):
         super().__init__()
-        self.word_embed = WordEmbedder(vocab_size, input_dims)
+        self.word_embed = emb
         self.pos_embed = PositionalEncoder(input_dims, dropout = dropout_val)
         # can hve multiple encoding layer blocks, make change later
         self.encoding_layer = EncoderLayer(input_dims, heads, dropout_val=dropout_val)
@@ -157,9 +195,9 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
 
-    def __init__(self, vocab_size, input_dims, heads, N = 1, mask = None, dropout_val = 0.1):
+    def __init__(self, emb, input_dims, heads, N = 1, mask = None, dropout_val = 0.1):
         super().__init__()
-        self.word_embed = WordEmbedder(vocab_size, input_dims)
+        self.word_embed = emb
         self.pos_embed = PositionalEncoder(input_dims, dropout = dropout_val)
         # can hve multiple encoding layer blocks, make change later
         self.decoding_layer = DecoderLayer(input_dims, heads, dropout_val=dropout_val)
